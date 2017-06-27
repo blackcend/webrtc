@@ -16070,9 +16070,7 @@ function noop () {}
 /***/ (function(module, exports, __webpack_require__) {
 
 const playVideo = __webpack_require__(34);
-const Peer = __webpack_require__(16);
-const $ = __webpack_require__(15);
-function openStream() {
+function openStream(cb) {
     'use strict';
     // navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
@@ -16097,23 +16095,10 @@ function openStream() {
     // }
 
     // navigator.getUserMedia(constraints, successCallback, errorCallback);
+    
     navigator.mediaDevices.getUserMedia({ audio: false, video: true })
         .then(stream => {
-            playVideo(stream, 'localStream')
-            // tao token
-            const p = new Peer({ initiator: location.hash === '#1', trickle: false, stream: stream });
-            // signal offer
-            p.on('signal', (token) => {
-                $("#txtMySignal").val(JSON.stringify(token));
-            });
-            // connect stream
-            $("#btnConnect").click(() => {
-                const friendSignal = JSON.parse($("#txtFriendSignal").val());
-                p.signal(friendSignal);
-            });
-            // signal answer friendStream
-            p.on("stream",friendStream => playVideo(friendStream,"friendStream"));
-
+            cb(stream);
         })
         .catch(err => console.log(err))
 }
@@ -17454,8 +17439,27 @@ function config (name) {
 /* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
+const playVideo = __webpack_require__(34);
+const Peer = __webpack_require__(16);
+const $ = __webpack_require__(15);
 const openStream = __webpack_require__(17);
-openStream();
+
+openStream(function (stream) {
+    playVideo(stream, 'localStream')
+    // tao token
+    const p = new Peer({ initiator: location.hash === '#1', trickle: false, stream: stream });
+    // signal offer
+    p.on('signal', (token) => {
+        $("#txtMySignal").val(JSON.stringify(token));
+    });
+    // connect stream
+    $("#btnConnect").click(() => {
+        const friendSignal = JSON.parse($("#txtFriendSignal").val());
+        p.signal(friendSignal);
+    });
+    // signal answer friendStream
+    p.on("stream", friendStream => playVideo(friendStream, "friendStream"));
+});
 
 
 
